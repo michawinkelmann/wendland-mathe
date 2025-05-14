@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Tempo-Test: 1+1 und 1−1</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      max-width: 100%;
+      overflow-x: hidden;
+      margin: 0;
+    }
+    #task {
+      font-size: 2em;
+      margin: 15px 0;
+    }
+    #timer {
+      font-size: 1.5em;
+      margin: 10px 0;
+      color: #555;
+    }
+    #progressContainer {
+      width: 100%;
+      background-color: #ddd;
+      height: 20px;
+      margin: 10px 0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #progressBar {
+      height: 100%;
+      width: 100%;
+      background-color: green;
+      transition: width 1s linear, background-color 0.5s;
+    }
+    #feedback {
+      margin: 10px 0;
+      height: 2em;
+    }
+    #score {
+      margin-top: 15px;
+      font-size: 1.2em;
+    }
+    input[type="number"] {
+      font-size: 1.5em;
+      width: 80px;
+      text-align: center;
+      padding: 8px;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+    }
+    button {
+      font-size: 1em;
+      padding: 12px 20px;
+      margin-top: 15px;
+      border-radius: 8px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      min-width: 120px;
+    }
+    button:active {
+      background-color: #3e8e41;
+    }
+    .screen {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+    .task-type-option {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+      text-align: left;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .task-type-option input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    
+    .operator-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    
+    .operator-option {
+      margin: 0 15px;
+      padding: 10px;
+      cursor: pointer;
+    }
+    
+    .operator-option input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    
+    .task-types-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 15px 0;
+    }
+    .task-count-option {
+      margin: 8px;
+      display: inline-block;
+    }
+    .task-count-option input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    .end-screen {
+      margin: 15px auto;
+      max-width: 100%;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 15px;
+    }
+    h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+    h3 {
+      font-size: 1.2em;
+      margin-bottom: 8px;
+    }
+    #taskCounter {
+      font-size: 1.2em;
+      margin: 8px 0;
+    }
+    
+    /* Neue Stile für die Zahlenbuttons */
+    #numberButtons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      margin: 15px auto;
+      max-width: 500px;
+    }
+    
+    .number-button {
+      width: 48px;
+      height: 48px;
+      font-size: 1.2em;
+      margin: 3px;
+      padding: 0;
+      border-radius: 24px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      min-width: 0;
+    }
+    
+    .number-button:active {
+      background-color: #0056b3;
+    }
+    
+    /* Mobile spezifische Stile */
+    body.mobile input[type="number"] {
+      font-size: 16px; /* Verhindert Zoom auf iOS */
+    }
+    
+    body.mobile button {
+      min-height: 44px; /* Minimum für Touch-Targets */
+    }
+    
+    body.mobile .number-button {
+      width: 40px;
+      height: 40px;
+      font-size: 1.1em;
+      margin: 2px;
+    }
+    
+    /* Responsive Anpassungen */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      h1 {
+        font-size: 1.5em;
+      }
+      h2 {
+        font-size: 1.3em;
+      }
+      h3 {
+        font-size: 1.1em;
+      }
+      #task {
+        font-size: 1.8em;
+      }
+      .task-type-option {
+        font-size: 0.9em;
+        padding: 8px;
+      }
+      .task-count {
+        margin: 10px 0;
+      }
+      .task-count-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .task-count-option {
+        display: block;
+        margin: 10px auto;
+        width: 150px;
+        text-align: left;
+      }
+      #numberButtons {
+        max-width: 360px;
+      }
+      .number-button {
+        width: 38px;
+        height: 38px;
+        font-size: 1em;
+        margin: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="startScreen" class="screen active">
+    <h1>Tempo-Test: 1+1 und 1−1</h1>
+    <h2>Einstellungen</h2>
+    
+    <div class="operator-selection">
+      <h3>Wähle die Rechenarten aus:</h3>
+      <div class="operator-container">
+        <label class="operator-option">
+          <input type="checkbox" name="operator" value="+" checked> Addition (+)
+        </label>
+        <label class="operator-option">
+          <input type="checkbox" name="operator" value="-" checked> Subtraktion (−)
+        </label>
+      </div>
+    </div>
+    
+    <div class="task-types">
+      <h3>Wähle die Aufgabentypen aus:</h3>
+      <div class="task-types-container">
+        <label class="task-type-option" style="background-color: rgba(255, 0, 0, 0.1); border: 2px solid #ff0000;">
+          <input type="checkbox" name="taskType" value="love" checked> 
+          <span>Verliebte Zahlen (Ergebnis = 10)</span>
+        </label>
+        <label class="task-type-option" style="background-color: rgba(255, 255, 0, 0.1); border: 2px solid #ffcc00;">
+          <input type="checkbox" name="taskType" value="double" checked> 
+          <span>Verdopplungsaufgaben (z.B. 3+3, 4-4)</span>
+        </label>
+        <label class="task-type-option" style="background-color: rgba(0, 191, 255, 0.1); border: 2px solid #00bfff;">
+          <input type="checkbox" name="taskType" value="five" checked> 
+          <span>Zahlen mit 5 (Ergebnis = 5 oder Summand = 5)</span>
+        </label>
+        <label class="task-type-option" style="background-color: rgba(0, 0, 255, 0.1); border: 2px solid #0000ff;">
+          <input type="checkbox" name="taskType" value="ten" checked> 
+          <span>Zahlen mit 10 (Summand = 10)</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="task-count">
+      <h3>Anzahl der Aufgaben:</h3>
+      <div class="task-count-container">
+        <label class="task-count-option">
+          <input type="radio" name="taskCount" value="10" checked> 10 Aufgaben
+        </label>
+        <label class="task-count-option">
+          <input type="radio" name="taskCount" value="20"> 20 Aufgaben
+        </label>
+        <label class="task-count-option">
+          <input type="radio" name="taskCount" value="30"> 30 Aufgaben
+        </label>
+      </div>
+    </div>
+
+    <button id="configStartButton">Spiel beginnen</button>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <h1>Tempo-Test: 1+1 und 1−1</h1>
+    <div id="taskCounter">Aufgabe 1 von 10</div>
+    <div id="task">Klicke auf "Start", um zu beginnen.</div>
+    <div id="timer">Zeit: 10s</div>
+    <div id="progressContainer">
+      <div id="progressBar"></div>
+    </div>
+    <input type="number" id="answer" disabled />
+    <div id="feedback"></div>
+    <div id="score">Punkte: 0</div>
+    <button id="submitButton">Beantworten</button>
+    
+    <!-- Neues Element für die Zahlenbuttons -->
+    <div id="numberButtons"></div>
+  </div>
+
+  <div id="endScreen" class="screen">
+    <h1>Tempo-Test: Ergebnis</h1>
+    <div class="end-screen">
+      <h2 id="finalScore">Dein Ergebnis: 0 Punkte</h2>
+      <div id="statsDisplay">
+        <p id="correctAnswers">Richtige Antworten: 0/10</p>
+        <p id="averageTime">Durchschnittliche Zeit: 0s</p>
+      </div>
+      <button id="restartButton">Neues Spiel</button>
+    </div>
+  </div>
+
+  <script>
+    // Elemente abrufen
+    const startScreen = document.getElementById('startScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const endScreen = document.getElementById('endScreen');
+    const configStartButton = document.getElementById('configStartButton');
+    const taskCounter = document.getElementById('taskCounter');
+    
+    const taskEl = document.getElementById('task');
+    const timerEl = document.getElementById('timer');
+    const progressBar = document.getElementById('progressBar');
+    const answerEl = document.getElementById('answer');
+    const feedbackEl = document.getElementById('feedback');
+    const scoreEl = document.getElementById('score');
+    const submitButton = document.getElementById('submitButton');
+    const numberButtons = document.getElementById('numberButtons');
+    
+    const finalScoreEl = document.getElementById('finalScore');
+    const correctAnswersEl = document.getElementById('correctAnswers');
+    const averageTimeEl = document.getElementById('averageTime');
+    const restartButton = document.getElementById('restartButton');
+
+    // Spielkonfiguration und -variablen
+    let allowedOperators = ['+', '-'];
+    let allowedTaskTypes = ['love', 'double', 'five', 'ten'];
+    let totalTasks = 10;
+    let currentTask = 0;
+    let score = 0;
+    let correctCount = 0;
+    let totalTime = 0;
+    
+    const timeLimit = 10;
+    let countdown;
+    let currentAnswer;
+    let startTime;
+    let timeLeft;
+    
+    // Mobile Detection
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    // UI Anpassungen für Mobile
+    if (isMobile) {
+      document.body.classList.add('mobile');
+    }
+
+    // Zahlenbuttons generieren
+    function createNumberButtons() {
+      numberButtons.innerHTML = '';
+      for (let i = 0; i <= 20; i++) {
+        const button = document.createElement('button');
+        button.className = 'number-button';
+        button.textContent = i;
+        button.setAttribute('data-value', i);
+        button.addEventListener('click', handleNumberButtonClick);
+        button.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          handleNumberButtonClick.call(this, e);
+        });
+        numberButtons.appendChild(button);
+      }
+    }
+    
+    // Event-Handler für Zahlenbuttons
+    function handleNumberButtonClick(e) {
+      if (answerEl.disabled) return;
+      
+      const value = this.getAttribute('data-value');
+      answerEl.value = value;
+      checkAnswer();
+    }
+
+    function generateTask() {
+      // Operator wählen
+      const operator = allowedOperators[Math.floor(Math.random() * allowedOperators.length)];
+      
+      // Aufgabentyp wählen
+      const taskType = allowedTaskTypes[Math.floor(Math.random() * allowedTaskTypes.length)];
+      
+      let a, b;
+      
+      // Basierend auf dem Aufgabentyp die Zahlen generieren
+      switch(taskType) {
+        case 'love': // Verliebte Zahlen (Ergebnis = 10)
+          if (operator === '+') {
+            a = Math.floor(Math.random() * 11); // 0-10
+            b = 10 - a;
+          } else { // Subtraktion
+            b = Math.floor(Math.random() * 11); // 0-10
+            a = 10 + b;
+          }
+          break;
+        
+        case 'double': // Verdopplungsaufgaben (gleiche Zahlen)
+          if (operator === '+') {
+            a = Math.floor(Math.random() * 11); // 0-10
+            b = a;
+          } else { // Subtraktion
+            a = Math.floor(Math.random() * 11) * 2; // Gerade Zahl zwischen 0-20
+            b = a / 2;
+          }
+          break;
+        
+        case 'five': // Zahlen mit 5 (Ergebnis = 5 oder Summand = 5)
+          if (Math.random() < 0.5) { // 50% Wahrscheinlichkeit für Ergebnis = 5
+            if (operator === '+') {
+              a = Math.floor(Math.random() * 6); // 0-5
+              b = 5 - a;
+            } else { // Subtraktion
+              b = Math.floor(Math.random() * 6); // 0-5
+              a = 5 + b;
+            }
+          } else { // 50% Wahrscheinlichkeit für Summand = 5
+            a = 5;
+            if (operator === '+') {
+              b = Math.floor(Math.random() * 11); // 0-10
+            } else { // Subtraktion
+              b = Math.floor(Math.random() * 6); // 0-5, damit Ergebnis nicht negativ
+            }
+          }
+          break;
+        
+        case 'ten': // Zahlen mit 10 (Summand = 10)
+          a = 10;
+          if (operator === '+') {
+            b = Math.floor(Math.random() * 11); // 0-10
+          } else { // Subtraktion
+            b = Math.floor(Math.random() * 11); // 0-10
+          }
+          break;
+      }
+
+      // Manchmal a und b vertauschen, damit nicht immer die größere Zahl vorne steht
+      if (operator === '+' && Math.random() < 0.5) {
+        [a, b] = [b, a];
+      }
+      
+      if (operator === '+') {
+        currentAnswer = a + b;
+      } else {
+        currentAnswer = a - b;
+      }
+
+      currentTask++;
+      taskCounter.textContent = `Aufgabe ${currentTask} von ${totalTasks}`;
+      taskEl.textContent = `${a} ${operator} ${b} = ?`;
+      answerEl.value = '';
+      answerEl.disabled = false;
+      answerEl.focus();
+      feedbackEl.textContent = '';
+      startTime = Date.now();
+      timeLeft = timeLimit;
+
+      timerEl.textContent = `Zeit: ${timeLeft}s`;
+      progressBar.style.width = '100%';
+      progressBar.style.backgroundColor = 'green';
+      
+      // Zahlenbuttons aktivieren
+      const numButtons = document.querySelectorAll('.number-button');
+      numButtons.forEach(btn => {
+        btn.disabled = false;
+      });
+
+      clearInterval(countdown);
+      countdown = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `Zeit: ${timeLeft}s`;
+        progressBar.style.width = `${(timeLeft / timeLimit) * 100}%`;
+
+        if (timeLeft > 7) {
+          progressBar.style.backgroundColor = 'green';
+        } else if (timeLeft > 3) {
+          progressBar.style.backgroundColor = 'yellow';
+        } else {
+          progressBar.style.backgroundColor = 'red';
+        }
+
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          feedbackEl.textContent = '⏰ Zeit abgelaufen!';
+          answerEl.disabled = true;
+          
+          // Zahlenbuttons deaktivieren
+          const numButtons = document.querySelectorAll('.number-button');
+          numButtons.forEach(btn => {
+            btn.disabled = true;
+          });
+          
+          if (currentTask < totalTasks) {
+            setTimeout(generateTask, 2000);
+          } else {
+            setTimeout(showEndScreen, 2000);
+          }
+        }
+      }, 1000);
+    }
+
+    function checkAnswer() {
+      const userAnswer = parseInt(answerEl.value, 10);
+      if (isNaN(userAnswer)) return;
+
+      clearInterval(countdown);
+      answerEl.disabled = true;
+      
+      // Zahlenbuttons deaktivieren
+      const numButtons = document.querySelectorAll('.number-button');
+      numButtons.forEach(btn => {
+        btn.disabled = true;
+      });
+      
+      const timeTaken = (Date.now() - startTime) / 1000;
+      totalTime += timeTaken;
+
+      if (userAnswer === currentAnswer) {
+        const bonus = Math.max(0, Math.floor(timeLimit - timeTaken));
+        score += 10 + bonus;
+        correctCount++;
+        feedbackEl.textContent = `✅ Richtig! +10 Punkte, +${bonus} Bonuspunkte`;
+      } else {
+        feedbackEl.textContent = `❌ Falsch! Die richtige Antwort war ${currentAnswer}`;
+      }
+
+      scoreEl.textContent = `Punkte: ${score}`;
+      
+      if (currentTask < totalTasks) {
+        setTimeout(generateTask, 2000);
+      } else {
+        setTimeout(showEndScreen, 2000);
+      }
+    }
+
+    function startGame() {
+      // Rechenarten speichern
+      allowedOperators = [];
+      const operatorCheckboxes = document.querySelectorAll('input[name="operator"]:checked');
+      operatorCheckboxes.forEach(checkbox => {
+        allowedOperators.push(checkbox.value);
+      });
+      
+      if (allowedOperators.length === 0) {
+        alert('Bitte wähle mindestens eine Rechenart aus!');
+        return;
+      }
+      
+      // Aufgabentypen speichern
+      allowedTaskTypes = [];
+      const taskTypeCheckboxes = document.querySelectorAll('input[name="taskType"]:checked');
+      taskTypeCheckboxes.forEach(checkbox => {
+        allowedTaskTypes.push(checkbox.value);
+      });
+      
+      if (allowedTaskTypes.length === 0) {
+        alert('Bitte wähle mindestens einen Aufgabentyp aus!');
+        return;
+      }
+      
+      // Anzahl der Aufgaben festlegen
+      const selectedTaskCount = document.querySelector('input[name="taskCount"]:checked');
+      totalTasks = parseInt(selectedTaskCount.value, 10);
+      
+      // Spielvariablen zurücksetzen
+      currentTask = 0;
+      score = 0;
+      correctCount = 0;
+      totalTime = 0;
+      scoreEl.textContent = 'Punkte: 0';
+      
+      // Zahlenbuttons erstellen
+      createNumberButtons();
+      
+      // Bildschirm wechseln
+      startScreen.classList.remove('active');
+      gameScreen.classList.add('active');
+      
+      // Spiel starten
+      generateTask();
+    }
+    
+    function showEndScreen() {
+      // Ergebnisse berechnen
+      const averageTime = correctCount > 0 ? (totalTime / correctCount).toFixed(1) : 0;
+      
+      // Ergebnisse anzeigen
+      finalScoreEl.textContent = `Dein Ergebnis: ${score} Punkte`;
+      correctAnswersEl.textContent = `Richtige Antworten: ${correctCount}/${totalTasks}`;
+      averageTimeEl.textContent = `Durchschnittliche Zeit: ${averageTime}s`;
+      
+      // Bildschirm wechseln
+      gameScreen.classList.remove('active');
+      endScreen.classList.add('active');
+    }
+    
+    function restartToConfig() {
+      endScreen.classList.remove('active');
+      startScreen.classList.add('active');
+    }
+
+    // Event-Listener für die Benutzeroberfläche
+    answerEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        checkAnswer();
+      }
+    });
+
+    submitButton.addEventListener('click', () => {
+      checkAnswer();
+    });
+
+    // Touch-Events für mobile Geräte optimieren
+    configStartButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      startGame();
+    });
+    
+    restartButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      restartToConfig();
+    });
+    
+    submitButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      checkAnswer();
+    });
+
+    configStartButton.addEventListener('click', startGame);
+    restartButton.addEventListener('click', restartToConfig);
+
+    // Numerische Tastatur für Eingabefeld auf mobilen Geräten
+    answerEl.addEventListener('focus', function() {
+      this.setAttribute('inputmode', 'numeric');
+      this.setAttribute('pattern', '[0-9]*');
+    });
+  </script>
+
+</body>
+</html>
